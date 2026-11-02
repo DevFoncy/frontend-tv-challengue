@@ -1,0 +1,153 @@
+:root {
+  --color-bg: #0a0c10;
+  --color-surface: #141821;
+  --color-surface-raised: #1d2331;
+  --color-text: #f4f6fa;
+  --color-text-muted: #9aa3b5;
+  --color-text-subtle: #6b7385;
+  --color-accent: #8b6cff;
+  --color-accent-alt: #22d3ee;
+  --color-focus: #ffffff;
+  --color-rating: #fbbf24;
+
+  --page-gutter: 96px;
+  --header-height: 96px;
+  --radius-card: 10px;
+  --radius-button: 10px;
+
+  --font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --transition-fast: 160ms ease-out;
+}
+
+@media (max-width: 1440px) {
+  :root {
+    --page-gutter: 64px;
+    --header-height: 80px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.app__main {
+  min-height: 100vh;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  padding: 0 36px;
+  margin-right: 20px;
+  border: 0;
+  border-radius: var(--radius-button);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.button:last-child {
+  margin-right: 0;
+}
+
+.button__icon {
+  margin-right: 12px;
+  font-size: 26px;
+}
+
+.button--large {
+  height: 76px;
+  padding: 0 48px;
+  font-size: 26px;
+}
+
+.button--primary {
+  background: #ffffff;
+  color: #0a0c10;
+}
+
+.button--primary:hover {
+  background: #e6e9f0;
+}
+
+.button--secondary {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--color-text);
+}
+
+.button--secondary:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.button:focus {
+  outline: none;
+  transform: scale(1.06);
+  box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 8px var(--color-focus);
+}

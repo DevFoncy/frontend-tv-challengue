@@ -1,0 +1,22 @@
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+  },
+  preview: {
+    port: 4173,
+  },
+  build: {
+    target: 'esnext',
+    sourcemap: true,
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
+    css: false,
+  },
+});

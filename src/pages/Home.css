@@ -1,0 +1,15 @@
+.home {
+  padding-bottom: 120px;
+}
+
+.home__rows {
+  position: relative;
+  z-index: 1;
+  margin-top: -80px;
+}
+
+@media (max-width: 1440px) {
+  .home__rows {
+    margin-top: -80px;
+  }
+}

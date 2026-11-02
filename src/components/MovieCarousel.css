@@ -1,0 +1,101 @@
+.carousel {
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.carousel__title {
+  display: flex;
+  align-items: baseline;
+  padding: 0 var(--page-gutter);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.carousel--active .carousel__title {
+  color: var(--color-text);
+}
+
+.carousel__count {
+  margin-left: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.carousel--active .carousel__count,
+.carousel:hover .carousel__count {
+  opacity: 1;
+}
+
+.carousel__viewport {
+  position: relative;
+}
+
+.carousel__track {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 24px var(--page-gutter) 28px;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Trailing space so the last card can scroll clear of the screen edge. */
+.carousel__track::after {
+  content: '';
+  flex: 0 0 calc(var(--page-gutter) - 24px);
+}
+
+.carousel__arrow {
+  position: absolute;
+  top: 24px;
+  bottom: 110px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--page-gutter) - 16px);
+  padding: 0;
+  border: 0;
+  background: rgba(10, 12, 16, 0.65);
+  color: #ffffff;
+  font-size: 40px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.carousel__arrow--prev {
+  left: 0;
+  border-radius: 0 12px 12px 0;
+}
+
+.carousel__arrow--next {
+  right: 0;
+  border-radius: 12px 0 0 12px;
+}
+
+.carousel:hover .carousel__arrow {
+  opacity: 1;
+}
+
+.carousel__arrow:hover {
+  background: rgba(10, 12, 16, 0.85);
+}
+
+@media (max-width: 1440px) {
+  .carousel__title {
+    font-size: 24px;
+  }
+
+  .carousel__arrow {
+    bottom: 90px;
+  }
+}
