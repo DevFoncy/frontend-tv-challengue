@@ -1,7 +1,18 @@
 import type { Movie } from '../types/movie';
 import moviesJson from './movies.json';
 
-const movies: Movie[] = moviesJson;
+// Asset paths in the catalog are relative to the site root. Prefix them with the
+// deployment base path so the app also works when served from a sub-folder.
+function withBasePath(path: string): string {
+  return import.meta.env.BASE_URL + path.replace(/^\//, '');
+}
+
+const movies: Movie[] = moviesJson.map((movie) => ({
+  ...movie,
+  posterUrl: withBasePath(movie.posterUrl),
+  backdropUrl: withBasePath(movie.backdropUrl),
+  videoUrl: withBasePath(movie.videoUrl),
+}));
 const moviesById = new Map(movies.map((movie) => [movie.id, movie]));
 
 export function getAllMovies(): Movie[] {

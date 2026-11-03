@@ -95,6 +95,18 @@ npm test
 
 The suite covers the catalog and search logic, Home rendering and basic remote navigation, the details screen, search and routing between screens. Tests render the full route tree with an in-memory router (see `tests/renderApp.tsx`).
 
+## Deployment
+
+Every push to `main` is built and published to GitHub Pages by `.github/workflows/deploy.yml`:
+https://devfoncy.github.io/frontend-tv-challengue/
+
+The workflow builds with `--base=/<repository>/`, because the site is served from a sub-folder. It also copies `index.html` to `404.html`, so deep links such as `/movie/sbx-0001` work on reload. To reproduce the published build locally:
+
+```bash
+npm run build -- --base=/frontend-tv-challengue/
+npx vite preview --base=/frontend-tv-challengue/
+```
+
 ## Browser support
 
 The app is developed and tested in current desktop Chrome. Support for the Smart TV reference device has not been validated yet.
