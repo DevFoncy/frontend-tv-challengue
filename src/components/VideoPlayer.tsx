@@ -45,14 +45,20 @@ export function VideoPlayer({ src, title, onBack }: VideoPlayerProps) {
       if (document.hidden) video.pause();
     };
 
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('ended', handleEnded);
-    video.addEventListener('error', handleError);
+    const mediaListeners: Array<[keyof HTMLMediaElementEventMap, () => void]> = [
+      ['loadedmetadata', handleLoadedMetadata],
+      ['timeupdate', handleTimeUpdate],
+      ['play', handlePlay],
+      ['pause', handlePause],
+      ['ended', handleEnded],
+      ['error', handleError],
+    ];
+    for (const [type, listener] of mediaListeners) video.addEventListener(type, listener);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // The effect owns the media source: it is attached here and released in the cleanup,
+    // so a remount (or React StrictMode's double effect run) always starts from a clean element.
+    video.setAttribute('src', src);
     setHasError(false);
     const playback = video.play();
     if (playback) {
@@ -61,10 +67,16 @@ export function VideoPlayer({ src, title, onBack }: VideoPlayerProps) {
     }
 
     return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
+      for (const [type, listener] of mediaListeners) video.removeEventListener(type, listener);
+      // This listener closes over the <video>: leaving it registered keeps the element
+      // and its media pipeline alive after the player unmounts.
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+      // Stop playback and release the decoder, buffers and network connection now,
+      // instead of whenever the element is garbage-collected.
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
     };
   }, [src]);
 
@@ -139,7 +151,6 @@ export function VideoPlayer({ src, title, onBack }: VideoPlayerProps) {
       <video
         ref={videoRef}
         className="player__video"
-        src={src}
         preload="auto"
         playsInline
         onClick={togglePlayback}

@@ -14,6 +14,11 @@ Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
   writable: true,
   value: vi.fn(),
 });
+Object.defineProperty(HTMLMediaElement.prototype, 'load', {
+  configurable: true,
+  writable: true,
+  value: vi.fn(),
+});
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
 
 afterEach(() => {

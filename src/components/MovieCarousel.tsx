@@ -1,14 +1,34 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type UIEvent } from 'react';
+import { useNearViewport } from '../hooks/useNearViewport';
 import type { HomeRow, Movie } from '../types/movie';
+import { firstVisibleIndex, getRenderRange, scrollLeftToReveal, type TrackMetrics } from './carouselLayout';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
-import { MovieCard } from './MovieCard';
+import { MovieCard, MovieCardPlaceholder } from './MovieCard';
 import './MovieCarousel.css';
 
-// Matches the poster width defined in MovieCard.css.
-const CARD_WIDTH = 264;
-const CARDS_PER_PAGE = 6;
 // Keeps the active row just below the fixed header.
 const ROW_SCROLL_OFFSET = 140;
+// Rows mount their cards when they come within this distance of the viewport.
+const ROW_PRELOAD_MARGIN = '400px 0px';
+// Rows visible at load on a 1080p screen, rendered before the first visibility check.
+const INITIALLY_VISIBLE_ROWS = 2;
+
+function measureTrack(track: HTMLElement): TrackMetrics | null {
+  const card = track.querySelector<HTMLElement>('.movie-card');
+  if (!card) return null;
+  const cardWidth = card.offsetWidth;
+  return {
+    cardWidth,
+    stride: cardWidth + (parseFloat(window.getComputedStyle(card).marginRight) || 0),
+    gutter: parseFloat(window.getComputedStyle(track).paddingLeft) || 0,
+    viewportWidth: track.clientWidth,
+  };
+}
+
+function sameMetrics(a: TrackMetrics | null, b: TrackMetrics | null): boolean {
+  if (a === null || b === null) return a === b;
+  return a.stride === b.stride && a.cardWidth === b.cardWidth && a.gutter === b.gutter && a.viewportWidth === b.viewportWidth;
+}
 
 interface MovieCarouselProps {
   row: HomeRow;
@@ -18,12 +38,27 @@ interface MovieCarouselProps {
   onSelect: (movie: Movie, rowIndex: number) => void;
 }
 
-export function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCarouselProps) {
+export const MovieCarousel = memo(function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCarouselProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const [metrics, setMetrics] = useState<TrackMetrics | null>(null);
+  const [firstVisible, setFirstVisible] = useState(0);
   const isActive = focusedIndex !== null;
+  const isNearViewport = useNearViewport(sectionRef, ROW_PRELOAD_MARGIN, rowIndex < INITIALLY_VISIBLE_ROWS);
 
   const handleSelect = useCallback((movie: Movie) => onSelect(movie, rowIndex), [onSelect, rowIndex]);
+
+  // Card size depends on the responsive breakpoints, so it is measured, not assumed.
+  useLayoutEffect(() => {
+    const update = () => {
+      const track = trackRef.current;
+      const next = track ? measureTrack(track) : null;
+      setMetrics((current) => (sameMetrics(current, next) ? current : next));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   // Bring the active row into view vertically.
   useEffect(() => {
@@ -38,14 +73,20 @@ export function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCa
     window.scrollTo(0, top);
   }, [isActive, rowIndex]);
 
-  // Page the row horizontally as the focus moves along it.
+  // Keep the focused card fully visible, scrolling as little as possible.
   useEffect(() => {
     const track = trackRef.current;
-    if (focusedIndex === null || !track) return;
+    if (focusedIndex === null || !track || !metrics || metrics.stride <= 0) return;
 
-    const page = Math.max(0, Math.floor(focusedIndex / CARDS_PER_PAGE));
-    track.scrollLeft = page * CARDS_PER_PAGE * CARD_WIDTH;
-  }, [focusedIndex]);
+    const target = scrollLeftToReveal(focusedIndex, track.scrollLeft, metrics);
+    if (target !== track.scrollLeft) {
+      track.scrollLeft = target;
+    }
+  }, [focusedIndex, metrics]);
+
+  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
+    setFirstVisible(firstVisibleIndex(event.currentTarget.scrollLeft, metrics));
+  };
 
   const scrollByPage = (direction: 1 | -1) => {
     const track = trackRef.current;
@@ -53,6 +94,12 @@ export function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCa
       track.scrollLeft += direction * Math.round(track.clientWidth * 0.8);
     }
   };
+
+  // Only rows near the viewport mount cards, and only the cards around the visible
+  // area. Spacers keep the track's scroll width, so scrolling and positions are unchanged.
+  const itemCount = row.movies.length;
+  const stride = metrics ? metrics.stride : 0;
+  const range = isActive || isNearViewport ? getRenderRange(itemCount, firstVisible, metrics, focusedIndex) : { start: 0, end: 0 };
 
   return (
     <section
@@ -63,7 +110,7 @@ export function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCa
     >
       <h2 id={`row-${row.id}`} className="carousel__title">
         {row.title}
-        <span className="carousel__count">{row.movies.length} titles</span>
+        <span className="carousel__count">{itemCount} titles</span>
       </h2>
       <div className="carousel__viewport">
         <button
@@ -75,16 +122,22 @@ export function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCa
         >
           <ChevronLeftIcon />
         </button>
-        <div ref={trackRef} className="carousel__track">
-          {row.movies.map((movie, index) => (
+        <div ref={trackRef} className="carousel__track" onScroll={handleScroll}>
+          {range.start > 0 && <span className="carousel__spacer" style={{ width: range.start * stride }} />}
+          {row.movies.slice(range.start, range.end).map((movie, offset) => (
             <MovieCard
               key={movie.id}
               movie={movie}
-              isFocused={focusedIndex === index}
+              isFocused={focusedIndex === range.start + offset}
               progress={row.progress?.[movie.id]}
               onSelect={handleSelect}
             />
           ))}
+          {range.end < itemCount && (
+            <span className="carousel__spacer" style={{ width: (itemCount - range.end) * stride }}>
+              {range.start === range.end && <MovieCardPlaceholder />}
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -98,4 +151,4 @@ export function MovieCarousel({ row, rowIndex, focusedIndex, onSelect }: MovieCa
       </div>
     </section>
   );
-}
+});

@@ -13,12 +13,13 @@ import './Home.css';
 export function Home() {
   const navigate = useNavigate();
   const rows = useMemo(() => buildHomeRows(getAllMovies(), WATCH_HISTORY), []);
+  const rowLengths = useMemo(() => rows.map((row) => row.movies.length), [rows]);
   const featured = getMovieById(FEATURED_MOVIE_ID);
 
   const openMovie = useCallback((movie: Movie) => navigate(`/movie/${movie.id}`), [navigate]);
 
   const { focus, setFocus } = useRowNavigation({
-    rowCount: rows.length,
+    rowLengths,
     memoryKey: 'home',
     onSelect: ({ row, col }) => {
       const movie = rows[row]?.movies[col];

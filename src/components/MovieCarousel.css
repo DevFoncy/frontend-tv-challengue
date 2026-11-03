@@ -48,6 +48,12 @@
   display: none;
 }
 
+/* Stands in for cards that are not mounted, so the scroll width stays the same. */
+.carousel__spacer {
+  display: block;
+  flex: 0 0 auto;
+}
+
 /* Trailing space so the last card can scroll clear of the screen edge. */
 .carousel__track::after {
   content: '';

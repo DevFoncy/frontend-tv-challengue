@@ -34,3 +34,17 @@ export const MovieCard = memo(function MovieCard({ movie, isFocused = false, pro
     </button>
   );
 });
+
+/**
+ * Invisible element with the exact footprint of a card. Keeps a row's height when
+ * none of its cards are mounted.
+ */
+export function MovieCardPlaceholder() {
+  return (
+    <span className="movie-card movie-card--placeholder" aria-hidden="true">
+      <span className="movie-card__poster" />
+      <span className="movie-card__title">&nbsp;</span>
+      <span className="movie-card__meta">&nbsp;</span>
+    </span>
+  );
+}

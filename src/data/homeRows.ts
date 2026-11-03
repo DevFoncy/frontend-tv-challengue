@@ -43,7 +43,8 @@ export function buildHomeRows(movies: Movie[], history: WatchHistoryEntry[]): Ho
   for (const entry of history) progress[entry.movieId] = entry.progress;
 
   // Recommendations are based on the genre of the most recently watched title.
-  const lastWatched = history.at(-1);
+  // Index access instead of Array.prototype.at(), which needs Chrome 92+.
+  const lastWatched = history.length > 0 ? history[history.length - 1] : undefined;
   const lastWatchedGenre = lastWatched ? moviesById.get(lastWatched.movieId)?.genre : undefined;
   const recommended = movies
     .filter((movie) => movie.genre === lastWatchedGenre && !watchedIds.has(movie.id))

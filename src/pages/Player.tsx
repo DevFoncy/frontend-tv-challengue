@@ -21,5 +21,6 @@ export function Player() {
     );
   }
 
-  return <VideoPlayer src={movie.videoUrl} title={movie.title} onBack={goBack} />;
+  // A new player instance per title: playback state and media resources never carry over.
+  return <VideoPlayer key={movie.id} src={movie.videoUrl} title={movie.title} onBack={goBack} />;
 }
